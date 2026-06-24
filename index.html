@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d1b2a">
+<title>My Route</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{
+  --bg:#0d1b2a; --bg2:#13263c; --card:#172b44; --card2:#1d3553;
+  --ink:#eaf2fb; --ink-dim:#9fb4ce; --ink-faint:#62789a;
+  --line:#274463; --accent:#ffd166; --accent2:#5fd0c4;
+  --go:#5fd0c4; --back:#ff9f7a;
+  --r:13px; --shadow:0 3px 12px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:linear-gradient(180deg,var(--bg),var(--bg2));
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  min-height:100vh;
+  padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 12px);
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:480px;margin:0 auto;padding:0 12px}
+
+header{padding:12px 4px 8px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:8px}
+.brand h1{font-size:19px;margin:0;font-weight:800;letter-spacing:-.02em}
+.brand .pin{width:21px;height:21px;flex:none}
+.now{font-size:12px;color:var(--ink-faint);font-weight:600;white-space:nowrap}
+
+.dests{display:flex;flex-direction:column;gap:9px}
+.dcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:11px 12px;box-shadow:var(--shadow)}
+.dcard-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+.dname{font-size:15px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap}
+.dname .route-flow{font-size:11px;color:var(--ink-faint);font-weight:600}
+.rm{color:var(--ink-faint);font-size:11px;cursor:pointer;background:none;border:0;padding:2px 4px}
+.dirbtn{flex:none;border:1px solid var(--line);background:var(--card2);color:var(--ink-dim);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;transition:.15s}
+.dirbtn:active{transform:scale(.95)}
+.dirbtn.go{color:var(--go);border-color:rgba(95,208,196,.5);background:rgba(95,208,196,.08)}
+.dirbtn.back{color:var(--back);border-color:rgba(255,159,122,.5);background:rgba(255,159,122,.08)}
+.dirbtn svg{width:12px;height:12px}
+
+.routes{display:flex;flex-direction:column;gap:8px}
+.route{background:var(--card2);border-radius:10px;padding:10px 11px;border:1px solid transparent}
+.route.best{border-color:var(--accent);background:linear-gradient(180deg,rgba(255,209,102,.05),var(--card2) 70%)}
+.route-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px}
+.rh-l{display:flex;align-items:baseline;gap:7px;min-width:0}
+.route-tag{font-size:10px;font-weight:800;padding:2px 7px;border-radius:5px;background:var(--card);color:var(--ink-dim);white-space:nowrap}
+.route.best .route-tag{background:var(--accent);color:#0d1b2a}
+.route-time{font-size:21px;font-weight:800;letter-spacing:-.02em}
+.route-time small{font-size:11px;font-weight:600;color:var(--ink-dim);margin-left:2px}
+.route-meta{font-size:11px;color:var(--ink-faint);font-weight:500;white-space:nowrap}
+
+/* ===== 카카오맵식 가로 막대 ===== */
+.bar{display:flex;height:26px;border-radius:13px;overflow:hidden;gap:2px;margin-bottom:7px;background:#0e1c2e}
+.bseg{display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:800;color:#fff;min-width:22px;padding:0 8px;white-space:nowrap;overflow:hidden}
+.bseg.walk{background:#33495f;color:var(--ink-dim);font-weight:700}
+.bseg .bi{font-size:12px}
+.bseg.s1{border-top-left-radius:13px;border-bottom-left-radius:13px}
+.bseg.sN{border-top-right-radius:13px;border-bottom-right-radius:13px}
+
+/* ===== 상세 경로 (항상 표시) ===== */
+.seglist{border-left:2px solid var(--line);margin-left:5px;margin-top:4px}
+.step{display:flex;gap:8px;padding:4px 0 4px 12px;position:relative;font-size:13px;line-height:1.38}
+.step::before{content:'';position:absolute;left:-6px;top:8px;width:9px;height:9px;border-radius:50%;background:var(--line);border:2px solid var(--card2)}
+.step.sub::before{background:var(--accent2)}
+.step.bus::before{background:var(--back)}
+.step.walk::before{background:#5a738f}
+.step .num{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:50%;font-size:11px;font-weight:800;color:#fff;padding:0 4px;margin-right:3px;vertical-align:-3px}
+.step .lbl{font-weight:800}
+.step .sub2{color:var(--ink-faint);font-size:11px}
+
+.state{padding:12px 4px;text-align:center;color:var(--ink-dim);font-size:13px}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.err{color:#ff9f7a;font-size:12px}
+
+.adder{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:11px}
+.adder-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.adder-h span{font-size:13px;font-weight:800;color:var(--ink-dim)}
+.refresh{background:none;border:1px solid var(--line);color:var(--ink-dim);border-radius:8px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer}
+.origin-pick{display:flex;gap:6px;margin-bottom:8px}
+.op{flex:1;border:1px solid var(--line);background:var(--card2);color:var(--ink-dim);border-radius:8px;padding:9px 4px;font-size:13px;font-weight:700;cursor:pointer;transition:.15s;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.op:active{transform:scale(.96)}
+.op.sel{border-color:var(--accent);background:rgba(255,209,102,.12);color:var(--accent)}
+.op.addnew{flex:0 0 auto;color:var(--accent2);border-color:rgba(95,208,196,.4);padding:9px 12px}
+.add-row{display:flex;gap:7px}
+.add-row input{flex:1;background:var(--card2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px 13px;font-size:15px;outline:none}
+.add-row input::placeholder{color:var(--ink-faint)}
+.add-row input:focus{border-color:var(--accent)}
+.add-row button{flex:none;background:var(--accent);color:#0d1b2a;border:0;border-radius:10px;padding:0 15px;font-size:15px;font-weight:800;cursor:pointer}
+.searchres{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.sr{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sr:active{border-color:var(--accent)}
+.sr .srn{font-size:14px;font-weight:700}
+.sr .sra{font-size:11px;color:var(--ink-faint);margin-top:2px}
+.sr .add{color:var(--accent);font-size:21px;font-weight:300;flex:none;line-height:1}
+
+.foot{text-align:center;color:var(--ink-faint);font-size:10px;margin-top:14px;opacity:.7}
+.keybox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px;margin-bottom:9px}
+.keybox p{margin:0;font-size:13px;color:var(--ink-dim);line-height:1.5}
+.keybox a{color:var(--accent2)} .keybox code{background:var(--bg2);padding:2px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg class="pin" viewBox="0 0 24 24" fill="none"><path d="M5 18l4-11" stroke="#ffd166" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="0.1 3.4"/><circle cx="5" cy="18.5" r="2.3" fill="#5fd0c4"/><path d="M16 3.5a4.5 4.5 0 014.5 4.5c0 3.4-4.5 7.5-4.5 7.5S11.5 11.4 11.5 8A4.5 4.5 0 0116 3.5z" fill="#ff6b6b"/><circle cx="16" cy="8" r="1.7" fill="#fff"/></svg>
+      <h1>My Route</h1>
+    </div>
+    <div class="now" id="nowLabel"></div>
+  </header>
+
+  <div id="keyArea"></div>
+  <div class="dests" id="dests"></div>
+
+  <div class="adder">
+    <div class="adder-h"><span>목적지 추가 / 경로 조회</span><button class="refresh" id="refreshAll">↻ 새로고침</button></div>
+    <div class="origin-pick" id="originPick"></div>
+    <div class="add-row"><input id="q" placeholder="식당·건물·장소·주소 검색" autocomplete="off"><button id="searchBtn">검색</button></div>
+    <div class="searchres" id="searchres"></div>
+  </div>
+
+  <div class="foot">ODsay · Kakao · 조회 시점 기준 실시간</div>
+</div>
+
+<script>
+/* ===== 설정 ===== */
+const ODSAY_KEY = "4Qj7VeyluYFOt8mYtv27MA";
+const PROXY = "https://route-search.ssangku2.workers.dev";
+
+const ORIGIN = { id:"home", name:"집(은빛마을)", short:"집", x:126.8364, y:37.6417 };
+// 3호선 화정역 + 612동→화정역 도보(고정)
+const HWAJEONG = { x:126.8329, y:37.6345, walkMin:7, walkM:520 };
+
+/* 서해선 대곡역 시간표 (원시/소사 방향, 평일) — 임시값, 실제 시각으로 교체 권장 */
+const SEOHAE_DAEGOK_WEEKDAY = [
+  "05:11","05:28","05:45","06:01","06:14","06:26","06:38","06:50","07:01","07:12",
+  "07:23","07:34","07:45","07:56","08:08","08:20","08:32","08:45","08:58","09:12",
+  "09:28","09:45","10:02","10:20","10:38","10:56","11:14","11:32","11:50","12:08",
+  "12:26","12:44","13:02","13:20","13:38","13:56","14:14","14:32","14:50","15:08",
+  "15:24","15:40","15:55","16:09","16:23","16:37","16:50","17:02","17:14","17:26",
+  "17:38","17:50","18:02","18:14","18:26","18:38","18:50","19:03","19:17","19:32",
+  "19:48","20:05","20:23","20:42","21:01","21:20","21:40","22:00","22:21","22:43",
+  "23:05","23:31"
+];
+function nextDaegokTrain(){
+  const now=new Date(); const cur=now.getHours()*60+now.getMinutes();
+  for(const t of SEOHAE_DAEGOK_WEEKDAY){ const [h,m]=t.split(":").map(Number); const v=h*60+m; if(v>=cur) return {time:t, after:v-cur}; }
+  return null;
+}
+
+const DEFAULT_DESTS = [
+  { id:"ace",  name:"에이스테크노타워", short:"에이스", x:126.8943, y:37.4855, viaHwajeong:true },
+  { id:"misa", name:"미사랑데르 III", short:"미사", x:127.1933, y:37.5611 },
+];
+
+let dests = DEFAULT_DESTS.map(d => ({...d, dir:"go", routes:null, loading:false, error:null}));
+let pickOrigin = "home";
+
+/* ===== 유틸 ===== */
+const $ = s => document.querySelector(s);
+const SUBWAY_COLOR = {
+  "1":"#0052A4","2":"#00A84D","3":"#EF7C1C","4":"#00A5DE","5":"#996CAC",
+  "6":"#CD7C2F","7":"#747F00","8":"#E6186C","9":"#BDB092","수인분당":"#FABE00",
+  "신분당":"#D4003B","경의중앙":"#77C4A3","공항":"#0090D2","경춘":"#0C8E72",
+  "우이신설":"#B7C452","서해":"#8FC31F","김포골드":"#A17800","GTX":"#9A6292","신림":"#6789CA"
+};
+function fmtMin(m){ if(m>=60){const h=Math.floor(m/60);return h+"시간 "+(m%60)+"분";} return m+"분"; }
+function subColor(name){ if(!name)return "#5fd0c4"; for(const k in SUBWAY_COLOR){if(name.includes(k))return SUBWAY_COLOR[k];} return "#5fd0c4"; }
+function laneName(seg){ if(seg.lane&&seg.lane[0])return seg.lane[0].name||seg.lane[0].busNo||""; return ""; }
+function lineLabel(nm){ if(!nm)return ""; const m=nm.match(/(\d+)호선/); if(m)return m[1]; return nm.replace("수도권","").replace("선","").replace(/\s/g,"").slice(0,3); }
+
+// 화정 시작 여부: 첫 지하철 구간의 출발역이 화정인가
+function startsAtHwajeong(path){
+  const firstSub = path.subPath.find(s=>s.trafficType===1);
+  return firstSub && firstSub.startName && firstSub.startName.includes("화정");
+}
+function passesHwajeong(path){
+  return path.subPath.some(s=>
+    (s.startName&&s.startName.includes("화정"))||(s.endName&&s.endName.includes("화정"))||
+    (s.passStopList&&s.passStopList.stations&&s.passStopList.stations.some(x=>x.stationName&&x.stationName.includes("화정")))
+  );
+}
+
+/* ===== 렌더 ===== */
+function renderNow(){ const d=new Date(); $("#nowLabel").textContent=`${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")} 기준`; }
+
+function renderOriginPick(){
+  const root=$("#originPick");
+  const opts=[{id:"home",label:"집"},...dests.map(d=>({id:d.id,label:d.short||d.name}))];
+  root.innerHTML=opts.map(o=>`<button class="op ${pickOrigin===o.id?'sel':''}" data-op="${o.id}">${o.label}</button>`).join("")
+    + `<button class="op addnew" id="addNewBtn">＋ 신규</button>`;
+  root.querySelectorAll("[data-op]").forEach(b=>{b.onclick=()=>{pickOrigin=b.dataset.op;renderOriginPick();};});
+  const an=root.querySelector("#addNewBtn");
+  if(an) an.onclick=()=>{ $("#q").focus(); $("#q").scrollIntoView({behavior:"smooth",block:"center"}); };
+}
+function resolveOrigin(){ if(pickOrigin==="home")return ORIGIN; const d=dests.find(x=>x.id===pickOrigin); return d?{name:d.name,short:d.short,x:d.x,y:d.y}:ORIGIN; }
+
+function renderDests(){
+  const root=$("#dests"); root.innerHTML="";
+  dests.forEach((d,i)=>{
+    const card=document.createElement("div"); card.className="dcard";
+    const go=d.dir==="go";
+    const flow=go?`${ORIGIN.short} → ${d.short||d.name}`:`${d.short||d.name} → ${ORIGIN.short}`;
+    card.innerHTML=`<div class="dcard-top">
+        <div class="dname">${d.name}${d.custom?`<button class="rm" data-rm="${i}">✕</button>`:""}
+          <span class="route-flow">${go?"출근":"퇴근"} · ${flow}</span></div>
+        <button class="dirbtn ${d.dir}" data-flip="${i}">${go?arrow():arrowBack()} ${go?"출근":"퇴근"}</button></div>
+      <div class="routes" id="r${i}"></div>`;
+    root.appendChild(card); renderRoutes(i);
+  });
+  root.querySelectorAll("[data-flip]").forEach(b=>{b.onclick=()=>{const i=+b.dataset.flip;dests[i].dir=dests[i].dir==="go"?"back":"go";dests[i].routes=null;renderDests();loadRoute(i);};});
+  root.querySelectorAll("[data-rm]").forEach(b=>{b.onclick=()=>{const i=+b.dataset.rm;const id=dests[i].id;dests.splice(i,1);if(pickOrigin===id)pickOrigin="home";renderDests();renderOriginPick();};});
+}
+function arrow(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';}
+function arrowBack(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>';}
+
+function renderRoutes(i){
+  const el=$("#r"+i); if(!el)return; const d=dests[i];
+  if(d.loading){el.innerHTML=`<div class="state"><span class="spin"></span>경로 조회 중…</div>`;return;}
+  if(d.error){el.innerHTML=`<div class="state err">${d.error}</div>`;return;}
+  if(!d.routes){el.innerHTML="";return;}
+  if(d.routes.length===0){el.innerHTML=`<div class="state">경로 없음</div>`;return;}
+  el.innerHTML=d.routes.map((r,idx)=>routeHTML(r,idx===0)).join("");
+}
+
+function routeHTML(r,isBest){
+  const total=r.info.totalTime;
+  const segs=r.subPath.filter(s=>s.trafficType!==3||(s.sectionTime||0)>0);
+  const bar=segs.map((s,idx)=>{
+    const cls=(idx===0?"s1 ":"")+(idx===segs.length-1?"sN ":"");
+    const w=Math.max((s.sectionTime/total)*100,7);
+    if(s.trafficType===3) return `<div class="bseg walk ${cls}" style="flex:${w}"><span class="bi">🚶</span>${s.sectionTime}</div>`;
+    if(s.trafficType===1){ const nm=laneName(s); return `<div class="bseg ${cls}" style="flex:${w};background:${subColor(nm)}"><span class="bi">🚇</span>${lineLabel(nm)}·${s.sectionTime}</div>`; }
+    const nm=laneName(s); return `<div class="bseg ${cls}" style="flex:${w};background:${"#ff9f7a"}"><span class="bi">🚌</span>${nm}·${s.sectionTime}</div>`;
+  }).join("");
+
+  const steps=r.subPath.map(s=>{
+    if(s.trafficType===3){ if(!s.sectionTime)return ""; return `<div class="step walk"><div><span class="lbl">도보</span> ${s.sectionTime}분 <span class="sub2">${s.distance?"· "+s.distance+"m":""}</span></div></div>`; }
+    if(s.trafficType===1){ const nm=laneName(s); const c=subColor(nm); const lb=lineLabel(nm); const numeric=/^\d+$/.test(lb);
+      let nextT="";
+      if(nm.includes("서해")||nm.includes("대곡소사")){ const nx=nextDaegokTrain(); nextT = nx?`<br><span class="sub2" style="color:#aede4d">🚆 대곡역 다음 열차 ${nx.time} (약 ${nx.after}분 후)</span>`:`<br><span class="sub2" style="color:#aede4d">🚆 대곡역 운행 종료</span>`; }
+      return `<div class="step sub"><div><span class="num" style="background:${c};${numeric?'':'border-radius:6px'}">${lb}</span><span class="lbl" style="color:${c}">${nm}</span> ${s.sectionTime}분<br><span class="sub2">${s.startName} → ${s.endName} · ${s.stationCount}개역</span>${nextT}</div></div>`; }
+    const nm=laneName(s); return `<div class="step bus"><div><span class="lbl" style="color:var(--back)">🚌 ${nm}번</span> ${s.sectionTime}분<br><span class="sub2">${s.startName} → ${s.endName} · ${s.stationCount}정류장</span></div></div>`;
+  }).filter(Boolean).join("");
+
+  const tr=Math.max((r.info.busTransitCount||0)+(r.info.subwayTransitCount||0)-1,0);
+  return `<div class="route ${isBest?'best':''}">
+    <div class="route-head">
+      <div class="rh-l"><span class="route-tag">${isBest?"⚡최단":"대안"}</span>
+        <span class="route-time">${fmtMin(total)}</span></div>
+      <span class="route-meta">환승${tr}·도보${r.info.totalWalk}m${r.info.payment?"·"+r.info.payment.toLocaleString()+"원":""}</span>
+    </div>
+    <div class="bar">${bar}</div>
+    <div class="seglist">${steps}</div>
+  </div>`;
+}
+
+/* ===== API ===== */
+async function loadRoute(i){
+  const d=dests[i]; d.loading=true; d.error=null; d.routes=null; renderRoutes(i);
+  const go=d.dir==="go";
+
+  // 집→에이스 출근: 화정역에서 출발하는 경로를 받고, 앞에 612동→화정역 도보 7분 주입
+  if(d.viaHwajeong && go && !d.custom){
+    await fetchRoute(d, HWAJEONG.x, HWAJEONG.y, d.x, d.y, false);
+    if(d.routes) d.routes = d.routes.map(r=>prependHomeWalk(r));
+    renderRoutes(i); return;
+  }
+
+  const o=d.custom?{x:d.originX??ORIGIN.x,y:d.originY??ORIGIN.y}:ORIGIN;
+  const sx=go?o.x:d.x, sy=go?o.y:d.y, ex=go?d.x:o.x, ey=go?d.y:o.y;
+  await fetchRoute(d,sx,sy,ex,ey,false);
+  renderRoutes(i);
+}
+
+// 경로 맨 앞에 612동→화정역 도보 구간을 끼우고 총시간/도보거리 보정
+function prependHomeWalk(r){
+  const walk={ trafficType:3, sectionTime:HWAJEONG.walkMin, distance:HWAJEONG.walkM };
+  const nr=JSON.parse(JSON.stringify(r));
+  // 화정역 도보 환승(역까지 진입 도보)이 이미 맨 앞에 있으면 그 시간을 흡수
+  if(nr.subPath[0] && nr.subPath[0].trafficType===3){
+    nr.subPath[0]=walk;
+  }else{
+    nr.subPath.unshift(walk);
+  }
+  nr.info=nr.info||{};
+  nr.info.totalTime=(nr.info.totalTime||0)+HWAJEONG.walkMin - (r.subPath[0]&&r.subPath[0].trafficType===3?(r.subPath[0].sectionTime||0):0);
+  nr.info.totalWalk=(nr.info.totalWalk||0)+HWAJEONG.walkM - (r.subPath[0]&&r.subPath[0].trafficType===3?(r.subPath[0].distance||0):0);
+  return nr;
+}
+async function fetchRoute(target,sx,sy,ex,ey,preferHwajeong){
+  try{
+    const url="https://api.odsay.com/v1/api/searchPubTransPathT"
+      +`?SX=${sx}&SY=${sy}&EX=${ex}&EY=${ey}&SearchType=0&SearchPathType=0&OPT=0`
+      +`&apiKey=${encodeURIComponent(ODSAY_KEY)}`;
+    const res=await fetch(url); if(!res.ok)throw new Error("HTTP "+res.status);
+    const data=await res.json();
+    if(data.error||(data.result&&data.result.error))throw new Error((data.result&&data.result.msg)||(data.error&&data.error.msg)||"API 오류");
+    let paths=(data.result&&data.result.path)||[];
+    paths.sort((a,b)=>{
+      if(preferHwajeong){
+        // 1순위: 화정에서 지하철 시작  2순위: 화정 경유
+        const aS=startsAtHwajeong(a)?0:1, bS=startsAtHwajeong(b)?0:1;
+        if(aS!==bS)return aS-bS;
+        const aP=passesHwajeong(a)?0:1, bP=passesHwajeong(b)?0:1;
+        if(aP!==bP)return aP-bP;
+      }
+      const as=a.subPath.some(s=>s.trafficType===1)?0:1;
+      const bs=b.subPath.some(s=>s.trafficType===1)?0:1;
+      if(as!==bs)return as-bs;
+      return a.info.totalTime-b.info.totalTime;
+    });
+    target.routes=paths.slice(0,2); target.loading=false;
+  }catch(e){ target.error="조회 실패: "+e.message; target.loading=false; }
+}
+function loadAll(){ dests.forEach((_,i)=>loadRoute(i)); }
+
+/* ===== 검색 ===== */
+async function searchPlace(q){
+  const box=$("#searchres"); box.innerHTML=`<div class="state"><span class="spin"></span>검색 중…</div>`;
+  try{
+    const res=await fetch(`${PROXY}/search?q=${encodeURIComponent(q)}`);
+    const raw=await res.text(); let data;
+    try{data=JSON.parse(raw);}catch{throw new Error(raw.slice(0,80));}
+    if(data.errorType||data.message&&!data.documents)throw new Error(data.message||data.errorType);
+    if(data.error)throw new Error(data.error);
+    const list=data.documents||[];
+    if(!list.length){box.innerHTML=`<div class="state">검색 결과가 없어요</div>`;return;}
+    box.innerHTML=list.slice(0,7).map((p,idx)=>`<div class="sr" data-idx="${idx}"><div style="flex:1;min-width:0"><div class="srn">${p.place_name}</div><div class="sra">${p.road_address_name||p.address_name||""}${p.category_group_name?" · "+p.category_group_name:""}</div></div><span class="add">＋</span></div>`).join("");
+    box.querySelectorAll(".sr").forEach(el=>{el.onclick=()=>{addDestFromSearch(list[+el.dataset.idx]);box.innerHTML="";$("#q").value="";};});
+  }catch(e){ box.innerHTML=`<div class="state err">검색 실패: ${e.message}</div>`; }
+}
+function addDestFromSearch(p){
+  const o=resolveOrigin();
+  dests.push({id:"c"+Date.now(),name:p.place_name,short:p.place_name.length>8?p.place_name.slice(0,8)+"…":p.place_name,
+    x:parseFloat(p.x),y:parseFloat(p.y),dir:"go",routes:null,loading:false,error:null,custom:true,originX:o.x,originY:o.y});
+  renderDests();renderOriginPick();loadRoute(dests.length-1);window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function checkSetup(){ if(ODSAY_KEY.includes("YOUR_ODSAY")){$("#keyArea").innerHTML=`<div class="keybox"><p><b>⚙️ 설정 필요</b><br>ODsay URI 키를 넣어주세요.</p></div>`;return false;} return true; }
+
+renderNow();renderOriginPick();renderDests();
+if(checkSetup())loadAll();
+$("#searchBtn").onclick=()=>{const q=$("#q").value.trim();if(q)searchPlace(q);};
+$("#q").addEventListener("keydown",e=>{if(e.key==="Enter"){const q=$("#q").value.trim();if(q)searchPlace(q);}});
+$("#refreshAll").onclick=()=>{renderNow();if(checkSetup())loadAll();};
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)renderNow();});
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}
+</script>
+</body>
+</html>
