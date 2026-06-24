@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d1b2a">
+<title>My Route</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{
+  --bg:#0d1b2a; --bg2:#13263c; --card:#172b44; --card2:#1d3553;
+  --ink:#eaf2fb; --ink-dim:#9fb4ce; --ink-faint:#62789a;
+  --line:#274463; --accent:#ffd166; --accent2:#5fd0c4;
+  --go:#5fd0c4; --back:#ff9f7a;
+  --r:18px; --shadow:0 6px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  min-height:100vh;
+  padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 16px);
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:480px;margin:0 auto;padding:0 16px}
+
+/* header */
+header{padding:22px 4px 14px}
+.eyebrow{font-size:12px;letter-spacing:.16em;color:var(--ink-faint);font-weight:700;text-transform:uppercase}
+h1{font-size:28px;margin:4px 0 4px;font-weight:800;letter-spacing:-.02em}
+.origin{font-size:14px;color:var(--ink-dim);display:flex;align-items:center;gap:6px}
+.origin .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);flex:none}
+.now{font-size:13px;color:var(--ink-faint);margin-top:6px}
+
+/* dest cards */
+.dests{display:flex;flex-direction:column;gap:14px;margin-top:8px}
+.dcard{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:16px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  transition:border-color .2s;
+}
+.dcard.active{border-color:var(--accent)}
+.dcard-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.dname{font-size:19px;font-weight:800;letter-spacing:-.01em}
+.daddr{font-size:13px;color:var(--ink-dim);margin-top:4px;line-height:1.45}
+.dirbtn{
+  flex:none;border:1.5px solid var(--line);background:var(--card2);color:var(--ink-dim);
+  border-radius:11px;padding:9px 13px;font-size:14px;font-weight:800;cursor:pointer;
+  display:flex;align-items:center;gap:6px;white-space:nowrap;transition:.15s;
+}
+.dirbtn:active{transform:scale(.95)}
+.dirbtn.go{color:var(--go);border-color:rgba(95,208,196,.55);background:rgba(95,208,196,.08)}
+.dirbtn.back{color:var(--back);border-color:rgba(255,159,122,.55);background:rgba(255,159,122,.08)}
+.dirbtn svg{width:15px;height:15px}
+
+.routes{margin-top:16px;display:flex;flex-direction:column;gap:14px}
+.route{
+  background:var(--card2);border-radius:14px;padding:16px;
+  border:1.5px solid var(--line);
+}
+.route.best{
+  border-color:var(--accent);
+  background:linear-gradient(180deg,rgba(255,209,102,.07),var(--card2) 60%);
+  box-shadow:0 2px 14px rgba(255,209,102,.08);
+}
+.route-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:10px}
+.route-tag{font-size:13px;font-weight:800;letter-spacing:.02em;display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;background:var(--card);color:var(--ink-dim)}
+.route.best .route-tag{background:var(--accent);color:#0d1b2a}
+.route-time{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1;text-align:right}
+.route-time small{font-size:14px;font-weight:600;color:var(--ink-dim);margin-left:3px}
+.route-meta{font-size:13px;color:var(--ink-dim);text-align:right;margin-top:6px;font-weight:500}
+
+/* segment bar */
+.segbar{display:flex;height:38px;border-radius:10px;overflow:hidden;gap:3px;margin-bottom:14px}
+.seg{display:flex;align-items:center;justify-content:center;gap:5px;font-size:14px;font-weight:800;color:#fff;min-width:30px;padding:0 9px;overflow:hidden;white-space:nowrap}
+.seg.walk{background:#3a5573;color:var(--ink);font-weight:700}
+.seg .ic{font-size:14px}
+
+/* segment detail list */
+.seglist{display:flex;flex-direction:column;gap:0;border-left:2.5px solid var(--line);margin-left:7px}
+.step{display:flex;gap:10px;padding:8px 0 8px 16px;position:relative;font-size:15px;line-height:1.5}
+.step::before{content:'';position:absolute;left:-8px;top:12px;width:13px;height:13px;border-radius:50%;background:var(--line);border:2.5px solid var(--card2)}
+.step.sub::before{background:var(--accent2)}
+.step.bus::before{background:var(--back)}
+.step .lbl{font-weight:800}
+.step .sub2{color:var(--ink-faint);font-size:13px}
+
+/* 서해선 다음 열차 박스 */
+.timetable{
+  margin:10px 0 4px 16px;background:rgba(143,195,31,.10);
+  border:1px solid rgba(143,195,31,.35);border-radius:10px;padding:11px 13px;
+}
+.timetable .tt-h{font-size:13px;font-weight:800;color:#aede4d;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.timetable .tt-times{display:flex;gap:8px;flex-wrap:wrap}
+.timetable .tt-chip{background:rgba(0,0,0,.25);border-radius:8px;padding:5px 11px;font-size:15px;font-weight:800;letter-spacing:.01em}
+.timetable .tt-chip.next{background:#8fc31f;color:#0d1b2a}
+.timetable .tt-min{font-size:12px;font-weight:600;color:var(--ink-dim);margin-top:5px}
+
+.state{padding:20px 4px;text-align:center;color:var(--ink-dim);font-size:15px}
+.spin{display:inline-block;width:20px;height:20px;border:2.5px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-4px;margin-right:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* add destination */
+.adder{margin-top:24px}
+.add-label{font-size:14px;font-weight:800;color:var(--ink-dim);margin-bottom:10px;padding-left:2px}
+.origin-pick{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px}
+.op{
+  border:1.5px solid var(--line);background:var(--card);color:var(--ink-dim);
+  border-radius:10px;padding:9px 13px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;
+}
+.op:active{transform:scale(.96)}
+.op.sel{border-color:var(--accent);background:rgba(255,209,102,.12);color:var(--accent)}
+.add-row{display:flex;gap:8px}
+.add-row input{
+  flex:1;background:var(--card);border:1.5px solid var(--line);color:var(--ink);
+  border-radius:12px;padding:15px 16px;font-size:16px;outline:none;
+}
+.add-row input::placeholder{color:var(--ink-faint)}
+.add-row input:focus{border-color:var(--accent)}
+.add-row button{
+  flex:none;background:var(--accent);color:#0d1b2a;border:0;border-radius:12px;
+  padding:0 20px;font-size:16px;font-weight:800;cursor:pointer;
+}
+.add-row button:active{transform:scale(.97)}
+.add-hint{font-size:13px;color:var(--ink-faint);margin-top:9px;padding-left:4px;line-height:1.5}
+.searchres{margin-top:10px;display:flex;flex-direction:column;gap:7px}
+.sr{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:14px 15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;transition:.15s}
+.sr:active{background:var(--card2);border-color:var(--accent)}
+.sr .srn{font-size:16px;font-weight:700}
+.sr .sra{font-size:13px;color:var(--ink-faint);margin-top:3px}
+.sr .add{color:var(--accent);font-size:26px;font-weight:300;flex:none;line-height:1}
+
+.rm{margin-left:10px;color:var(--ink-faint);font-size:13px;cursor:pointer;background:none;border:0;padding:4px}
+.refresh{background:none;border:1.5px solid var(--line);color:var(--ink-dim);border-radius:10px;padding:8px 13px;font-size:14px;font-weight:700;cursor:pointer}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin:22px 4px 6px}
+.foot{text-align:center;color:var(--ink-faint);font-size:12px;margin-top:26px;line-height:1.7}
+.err{color:#ff9f7a}
+.keybox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:10px}
+.keybox p{margin:0;font-size:14px;color:var(--ink-dim);line-height:1.6}
+.keybox a{color:var(--accent2)}
+.keybox code{background:var(--bg2);padding:2px 6px;border-radius:5px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">집 ↔ 목적지 · 실시간 대중교통</div>
+    <h1>My Route</h1>
+    <div class="origin"><span class="dot"></span><span id="originLabel">은빛마을 612동 · 화정</span></div>
+    <div class="now" id="nowLabel"></div>
+  </header>
+
+  <div id="keyArea"></div>
+
+  <div class="dests" id="dests"></div>
+
+  <div class="adder">
+    <div class="toolbar">
+      <span class="add-label">목적지 추가 / 경로 조회</span>
+      <button class="refresh" id="refreshAll">↻ 새로고침</button>
+    </div>
+    <div class="add-label" style="font-weight:700;color:var(--ink-faint);font-size:13px">출발 지점</div>
+    <div class="origin-pick" id="originPick"></div>
+    <div class="add-row">
+      <input id="q" placeholder="식당·건물·장소·주소 검색" autocomplete="off">
+      <button id="searchBtn">검색</button>
+    </div>
+    <div class="add-hint">예: "성수 어니언", "롯데월드타워", "강남역 11번 출구"</div>
+    <div class="searchres" id="searchres"></div>
+  </div>
+
+  <div class="foot">
+    실시간 정보는 조회 시점 기준 · 도보 구간은 가능한 한 역까지 직접 이동<br>
+    경로 데이터: ODsay · 지명 검색: Kakao · 서해선 시각: 대곡역 내장 시간표
+  </div>
+</div>
+
+<script>
+/* ========= 설정 ========= */
+const ODSAY_KEY = "4Qj7VeyluYFOt8mYtv27MA";
+const PROXY = "https://route-search.ssangku2.workers.dev";
+
+const ORIGIN = { id:"home", name:"집 (은빛마을 612동)", short:"집(은빛마을)", x:126.8364, y:37.6417 };
+
+const DEFAULT_DESTS = [
+  { id:"ace",  name:"에이스테크노타워 5차", short:"에이스테크노타워", addr:"서울 구로구 디지털로31길 20", x:126.8943, y:37.4855 },
+  { id:"misa", name:"미사랑데르 III", short:"미사랑데르", addr:"경기 하남시 미사강변남로 103", x:127.1933, y:37.5611 },
+];
+
+/* ===== 서해선 대곡역 시간표 (원시/소사 방향, 평일) =====
+   ⚠️ 임시값입니다. 정확한 대곡역 원시방향 평일 시간표로 교체하세요.
+   "HH:MM" 문자열 배열. 첫차 05:11 ~ 막차 23:31 기준 대략 배차로 채운 자리표시.
+   교체 방법: 아래 SEOHAE_DAEGOK_WEEKDAY 배열만 실제 시각으로 갈아끼우면 됨. */
+const SEOHAE_DAEGOK_WEEKDAY = [
+  "05:11","05:28","05:45","06:01","06:14","06:26","06:38","06:50","07:01","07:12",
+  "07:23","07:34","07:45","07:56","08:08","08:20","08:32","08:45","08:58","09:12",
+  "09:28","09:45","10:02","10:20","10:38","10:56","11:14","11:32","11:50","12:08",
+  "12:26","12:44","13:02","13:20","13:38","13:56","14:14","14:32","14:50","15:08",
+  "15:24","15:40","15:55","16:09","16:23","16:37","16:50","17:02","17:14","17:26",
+  "17:38","17:50","18:02","18:14","18:26","18:38","18:50","19:03","19:17","19:32",
+  "19:48","20:05","20:23","20:42","21:01","21:20","21:40","22:00","22:21","22:43",
+  "23:05","23:31"
+];
+
+/* ========= 상태 ========= */
+let dests = DEFAULT_DESTS.map(d => ({...d, dir:"go", routes:null, loading:false, error:null}));
+let pickOrigin = "home"; // 검색 시 출발지: home/ace/misa/(custom id)
+
+/* ========= 유틸 ========= */
+const $ = s => document.querySelector(s);
+const TRAFFIC = { 1:{ic:"🚇",cls:"sub"}, 2:{ic:"🚌",cls:"bus"}, 3:{ic:"🚶",cls:"walk"} };
+const SUBWAY_COLOR = {
+  "1":"#0052A4","2":"#00A84D","3":"#EF7C1C","4":"#00A5DE","5":"#996CAC",
+  "6":"#CD7C2F","7":"#747F00","8":"#E6186C","9":"#BDB092","수인분당":"#FABE00",
+  "신분당":"#D4003B","경의중앙":"#77C4A3","공항":"#0090D2","경춘":"#0C8E72",
+  "우이신설":"#B7C452","서해":"#8FC31F","김포골드":"#A17800","GTX":"#9A6292"
+};
+function fmtMin(m){ if(m>=60){const h=Math.floor(m/60);return h+"시간 "+(m%60)+"분";} return m+"분"; }
+function subColor(name){
+  if(!name) return "#5fd0c4";
+  for(const k in SUBWAY_COLOR){ if(name.includes(k)) return SUBWAY_COLOR[k]; }
+  return "#5fd0c4";
+}
+function laneName(seg){
+  if(seg.lane && seg.lane[0]) return seg.lane[0].name || seg.lane[0].busNo || "";
+  return "";
+}
+function isSeohae(seg){
+  const n = laneName(seg);
+  return seg.trafficType===1 && (n.includes("서해") || n.includes("대곡소사"));
+}
+
+/* 대곡역 다음 열차 N개 계산 */
+function nextDaegokTrains(n=3){
+  const now = new Date();
+  const cur = now.getHours()*60 + now.getMinutes();
+  const list = SEOHAE_DAEGOK_WEEKDAY.map(t=>{
+    const [h,m]=t.split(":").map(Number); return {t, min:h*60+m};
+  });
+  const upcoming = list.filter(x=>x.min>=cur).slice(0,n);
+  return upcoming.map(x=>({ time:x.t, after:x.min-cur }));
+}
+
+/* ========= 렌더 ========= */
+function renderNow(){
+  const d = new Date();
+  const days=["일","월","화","수","목","금","토"];
+  $("#nowLabel").textContent =
+    `조회 ${d.getMonth()+1}/${d.getDate()}(${days[d.getDay()]}) ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")} 기준`;
+}
+
+function renderOriginPick(){
+  const root = $("#originPick");
+  const opts = [
+    {id:"home", label:"집(은빛마을)"},
+    ...dests.map(d=>({id:d.id, label:d.short || d.name})),
+  ];
+  // 추가(현 위치 외 임의 출발지)는 검색 결과에서 처리하므로 여기선 기본만
+  root.innerHTML = opts.map(o=>
+    `<button class="op ${pickOrigin===o.id?'sel':''}" data-op="${o.id}">${o.label}</button>`
+  ).join("");
+  root.querySelectorAll("[data-op]").forEach(b=>{
+    b.onclick = ()=>{ pickOrigin = b.dataset.op; renderOriginPick(); };
+  });
+}
+
+function resolveOrigin(){
+  if(pickOrigin==="home") return ORIGIN;
+  const d = dests.find(x=>x.id===pickOrigin);
+  return d ? {name:d.name, short:d.short, x:d.x, y:d.y} : ORIGIN;
+}
+
+function renderDests(){
+  const root = $("#dests");
+  root.innerHTML = "";
+  dests.forEach((d,i)=>{
+    const card = document.createElement("div");
+    card.className = "dcard";
+    const goingTo = d.dir==="go";
+    const dirLabel = goingTo ? "출근 · 집 → 목적지" : "퇴근 · 목적지 → 집";
+    const fromLabel = goingTo ? ORIGIN.short : (d.short||d.name);
+    const toLabel   = goingTo ? (d.short||d.name) : ORIGIN.short;
+
+    card.innerHTML = `
+      <div class="dcard-top">
+        <div style="flex:1;min-width:0">
+          <div class="dname">${d.name}${d.custom?`<button class="rm" data-rm="${i}">삭제</button>`:""}</div>
+          <div class="daddr">${dirLabel}<br>${fromLabel} → ${toLabel}</div>
+        </div>
+        <button class="dirbtn ${d.dir}" data-flip="${i}">
+          ${goingTo?arrow():arrowBack()} ${goingTo?"출근":"퇴근"}
+        </button>
+      </div>
+      <div class="routes" id="r${i}"></div>
+    `;
+    root.appendChild(card);
+    renderRoutes(i);
+  });
+
+  root.querySelectorAll("[data-flip]").forEach(b=>{
+    b.onclick = ()=>{ const i=+b.dataset.flip; dests[i].dir = dests[i].dir==="go"?"back":"go"; dests[i].routes=null; renderDests(); loadRoute(i); };
+  });
+  root.querySelectorAll("[data-rm]").forEach(b=>{
+    b.onclick = ()=>{ const i=+b.dataset.rm; const rmId=dests[i].id; dests.splice(i,1); if(pickOrigin===rmId) pickOrigin="home"; renderDests(); renderOriginPick(); };
+  });
+}
+
+function arrow(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';}
+function arrowBack(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>';}
+
+function renderRoutes(i){
+  const el = $("#r"+i);
+  if(!el) return;
+  const d = dests[i];
+  if(d.loading){ el.innerHTML = `<div class="state"><span class="spin"></span>실시간 경로 조회 중…</div>`; return; }
+  if(d.error){ el.innerHTML = `<div class="state err">${d.error}</div>`; return; }
+  if(!d.routes){ el.innerHTML = ""; return; }
+  if(d.routes.length===0){ el.innerHTML = `<div class="state">경로를 찾지 못했어요</div>`; return; }
+  el.innerHTML = d.routes.map((r,idx)=>routeHTML(r, idx===0)).join("");
+}
+
+function routeHTML(r, isBest){
+  const total = r.info.totalTime;
+  const bar = r.subPath.filter(s=>s.trafficType!==3 || (s.sectionTime||0)>0).map(s=>{
+    const t = TRAFFIC[s.trafficType] || TRAFFIC[3];
+    const w = Math.max((s.sectionTime/total)*100, 9);
+    if(s.trafficType===3){
+      return `<div class="seg walk" style="flex:${w}"><span class="ic">🚶</span>${s.sectionTime||""}</div>`;
+    }
+    const nm = laneName(s);
+    const bg = s.trafficType===1 ? subColor(nm) : "#ff9f7a";
+    const label = s.trafficType===1 ? (nm.replace("수도권","").replace("호선","").trim()||"") : (nm||"버스");
+    return `<div class="seg" style="flex:${w};background:${bg}"><span class="ic">${t.ic}</span>${label}</div>`;
+  }).join("");
+
+  const steps = r.subPath.map(s=>{
+    if(s.trafficType===3){
+      if(!s.sectionTime) return "";
+      return `<div class="step"><div><span class="lbl">도보</span> ${s.sectionTime}분 <span class="sub2">${s.distance?`· ${s.distance}m`:""}</span></div></div>`;
+    }
+    if(s.trafficType===1){
+      const nm = laneName(s);
+      let extra = "";
+      if(isSeohae(s)){ extra = seohaeBox(); }
+      return `<div class="step sub"><div><span class="lbl" style="color:${subColor(nm)}">${nm}</span> ${s.sectionTime}분<br><span class="sub2">${s.startName} → ${s.endName} · ${s.stationCount}개역</span>${extra}</div></div>`;
+    }
+    const nm = laneName(s);
+    return `<div class="step bus"><div><span class="lbl" style="color:var(--back)">${nm} 버스</span> ${s.sectionTime}분<br><span class="sub2">${s.startName} → ${s.endName} · ${s.stationCount}정류장</span></div></div>`;
+  }).filter(Boolean).join("");
+
+  const transfers = Math.max((r.info.busTransitCount||0)+(r.info.subwayTransitCount||0)-1, 0);
+  return `
+    <div class="route ${isBest?'best':''}">
+      <div class="route-head">
+        <span class="route-tag">${isBest?"⚡ 최단 · 방법 1":"방법 2"}</span>
+        <div>
+          <div class="route-time">${fmtMin(total)}</div>
+          <div class="route-meta">환승 ${transfers}회 · 도보 ${r.info.totalWalk}m${r.info.payment?` · ${r.info.payment.toLocaleString()}원`:""}</div>
+        </div>
+      </div>
+      <div class="segbar">${bar}</div>
+      <div class="seglist">${steps}</div>
+    </div>`;
+}
+
+function seohaeBox(){
+  const trains = nextDaegokTrains(3);
+  if(!trains.length){
+    return `<div class="timetable"><div class="tt-h">🚆 대곡역 서해선(원시방향)</div><div class="tt-min">운행 종료 — 다음 열차 없음</div></div>`;
+  }
+  const chips = trains.map((t,idx)=>
+    `<span class="tt-chip ${idx===0?'next':''}">${t.time}</span>`
+  ).join("");
+  const a = trains[0].after;
+  const soon = a<=1 ? "곧 도착" : `약 ${a}분 후 (${trains[0].time})`;
+  return `
+    <div class="timetable">
+      <div class="tt-h">🚆 대곡역 서해선 · 원시방향 다음 열차</div>
+      <div class="tt-times">${chips}</div>
+      <div class="tt-min">${soon}</div>
+    </div>`;
+}
+
+/* ========= API: 경로 ========= */
+async function loadRoute(i){
+  const d = dests[i];
+  d.loading = true; d.error = null; d.routes = null; renderRoutes(i);
+  const goingTo = d.dir==="go";
+  const sx = goingTo ? ORIGIN.x : d.x;
+  const sy = goingTo ? ORIGIN.y : d.y;
+  const ex = goingTo ? d.x : ORIGIN.x;
+  const ey = goingTo ? d.y : ORIGIN.y;
+  await fetchRoute(d, sx, sy, ex, ey);
+  renderRoutes(i);
+}
+
+async function fetchRoute(target, sx, sy, ex, ey){
+  try{
+    const url = "https://api.odsay.com/v1/api/searchPubTransPathT"
+      + `?SX=${sx}&SY=${sy}&EX=${ex}&EY=${ey}`
+      + `&SearchType=0&SearchPathType=0&OPT=0`
+      + `&apiKey=${encodeURIComponent(ODSAY_KEY)}`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const data = await res.json();
+    if(data.error || (data.result && data.result.error)){
+      throw new Error((data.result&&data.result.msg) || (data.error&&data.error.msg) || data.error || "API 오류");
+    }
+    let paths = (data.result && data.result.path) || [];
+    paths.sort((a,b)=>{
+      const aSub = a.subPath.some(s=>s.trafficType===1)?0:1;
+      const bSub = b.subPath.some(s=>s.trafficType===1)?0:1;
+      if(aSub!==bSub) return aSub-bSub;
+      return a.info.totalTime - b.info.totalTime;
+    });
+    target.routes = paths.slice(0,2);
+    target.loading = false;
+  }catch(e){
+    target.error = "조회 실패: "+e.message+" (ODsay 키·등록 도메인 확인)";
+    target.loading = false;
+  }
+}
+
+function loadAll(){ dests.forEach((_,i)=>loadRoute(i)); }
+
+/* ========= 목적지 검색 (Kakao via proxy) ========= */
+async function searchPlace(q){
+  const box = $("#searchres");
+  if(PROXY.includes("YOUR-SUBDOMAIN")){
+    box.innerHTML = `<div class="state">검색용 프록시 설정이 필요해요 (README 참고)</div>`;
+    return;
+  }
+  box.innerHTML = `<div class="state"><span class="spin"></span>검색 중…</div>`;
+  try{
+    const res = await fetch(`${PROXY}/search?q=${encodeURIComponent(q)}`);
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    const list = data.documents || [];
+    if(!list.length){ box.innerHTML = `<div class="state">검색 결과가 없어요</div>`; return; }
+    box.innerHTML = list.slice(0,7).map((p,idx)=>`
+      <div class="sr" data-idx="${idx}">
+        <div style="flex:1;min-width:0">
+          <div class="srn">${p.place_name}</div>
+          <div class="sra">${p.road_address_name||p.address_name||""}${p.category_group_name?" · "+p.category_group_name:""}</div>
+        </div>
+        <span class="add">＋</span>
+      </div>`).join("");
+    box.querySelectorAll(".sr").forEach(el=>{
+      el.onclick = ()=>{
+        const p = list[+el.dataset.idx];
+        addDestFromSearch(p);
+        box.innerHTML = ""; $("#q").value="";
+      };
+    });
+  }catch(e){
+    box.innerHTML = `<div class="state err">검색 실패: ${e.message}</div>`;
+  }
+}
+
+function addDestFromSearch(p){
+  const o = resolveOrigin();
+  const newDest = {
+    id:"c"+Date.now(),
+    name:p.place_name,
+    short:p.place_name.length>10?p.place_name.slice(0,10)+"…":p.place_name,
+    addr:p.road_address_name||p.address_name||"",
+    x:parseFloat(p.x), y:parseFloat(p.y),
+    dir:"go", routes:null, loading:false, error:null, custom:true,
+    originX:o.x, originY:o.y, originName:o.short||o.name,
+  };
+  dests.push(newDest);
+  renderDests();
+  renderOriginPick();
+  // 선택한 출발지 기준으로 조회 (집이 아니면 originX/Y 사용)
+  loadCustomRoute(dests.length-1);
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* 커스텀 출발지 경로 (검색으로 추가된 목적지) */
+async function loadCustomRoute(i){
+  const d = dests[i];
+  d.loading = true; d.error=null; d.routes=null; renderRoutes(i);
+  const goingTo = d.dir==="go";
+  const ox = d.originX ?? ORIGIN.x, oy = d.originY ?? ORIGIN.y;
+  const sx = goingTo ? ox : d.x;
+  const sy = goingTo ? oy : d.y;
+  const ex = goingTo ? d.x : ox;
+  const ey = goingTo ? d.y : oy;
+  await fetchRoute(d, sx, sy, ex, ey);
+  renderRoutes(i);
+}
+
+/* ========= 설정 안내 ========= */
+function checkSetup(){
+  if(ODSAY_KEY.includes("YOUR_ODSAY")){
+    $("#keyArea").innerHTML = `
+      <div class="keybox"><p><b>⚙️ 설정 필요</b><br>
+      ODsay <b>URI</b> 키를 <code>index.html</code>의 <code>ODSAY_KEY</code>에 넣어주세요.
+      <a href="https://lab.odsay.com" target="_blank">lab.odsay.com</a></p></div>`;
+    return false;
+  }
+  return true;
+}
+
+/* ========= 초기화 ========= */
+renderNow();
+renderOriginPick();
+renderDests();
+if(checkSetup()) loadAll();
+
+$("#searchBtn").onclick = ()=>{ const q=$("#q").value.trim(); if(q) searchPlace(q); };
+$("#q").addEventListener("keydown",e=>{ if(e.key==="Enter"){const q=$("#q").value.trim(); if(q) searchPlace(q);} });
+$("#refreshAll").onclick = ()=>{ renderNow(); if(checkSetup()) loadAll(); };
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) renderNow(); });
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
+</script>
+</body>
+</html>
