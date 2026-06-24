@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d1b2a">
+<title>My Route</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{
+  --bg:#0d1b2a; --bg2:#13263c; --card:#172b44; --card2:#1d3553;
+  --ink:#eaf2fb; --ink-dim:#9fb4ce; --ink-faint:#62789a;
+  --line:#274463; --accent:#ffd166; --accent2:#5fd0c4;
+  --go:#5fd0c4; --back:#ff9f7a;
+  --r:14px; --shadow:0 4px 16px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:linear-gradient(180deg,var(--bg),var(--bg2));
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  min-height:100vh;
+  padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 12px);
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:480px;margin:0 auto;padding:0 12px}
+
+/* ===== compact header ===== */
+header{padding:14px 4px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:8px}
+.brand h1{font-size:20px;margin:0;font-weight:800;letter-spacing:-.02em}
+.brand .pin{width:22px;height:22px;flex:none}
+.now{font-size:12px;color:var(--ink-faint);font-weight:600;white-space:nowrap}
+
+/* ===== dest cards ===== */
+.dests{display:flex;flex-direction:column;gap:10px}
+.dcard{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:12px;box-shadow:var(--shadow);
+}
+.dcard-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.dname{font-size:16px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:7px;min-width:0}
+.dname .route-flow{font-size:11px;color:var(--ink-faint);font-weight:600}
+.rm{color:var(--ink-faint);font-size:11px;cursor:pointer;background:none;border:0;padding:2px 4px}
+.dirbtn{
+  flex:none;border:1px solid var(--line);background:var(--card2);color:var(--ink-dim);
+  border-radius:9px;padding:6px 11px;font-size:13px;font-weight:800;cursor:pointer;
+  display:flex;align-items:center;gap:5px;white-space:nowrap;transition:.15s;
+}
+.dirbtn:active{transform:scale(.95)}
+.dirbtn.go{color:var(--go);border-color:rgba(95,208,196,.5);background:rgba(95,208,196,.08)}
+.dirbtn.back{color:var(--back);border-color:rgba(255,159,122,.5);background:rgba(255,159,122,.08)}
+.dirbtn svg{width:13px;height:13px}
+
+.routes{display:flex;flex-direction:column;gap:9px}
+.route{background:var(--card2);border-radius:11px;padding:11px 12px;border:1px solid transparent}
+.route.best{border-color:var(--accent);background:linear-gradient(180deg,rgba(255,209,102,.06),var(--card2) 70%)}
+.route-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;gap:8px}
+.route-tag{font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;background:var(--card);color:var(--ink-dim);white-space:nowrap}
+.route.best .route-tag{background:var(--accent);color:#0d1b2a}
+.route-r{text-align:right;line-height:1.1}
+.route-time{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.route-time small{font-size:12px;font-weight:600;color:var(--ink-dim);margin-left:2px}
+.route-meta{font-size:11px;color:var(--ink-faint);font-weight:500;margin-top:2px}
+
+/* ===== route flow: badges with time under ===== */
+.flow{display:flex;align-items:flex-start;gap:4px;flex-wrap:wrap}
+.hop{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:34px}
+.badge{
+  display:flex;align-items:center;justify-content:center;gap:3px;
+  height:30px;border-radius:8px;padding:0 9px;font-size:14px;font-weight:800;color:#fff;white-space:nowrap;
+}
+.badge.num{width:30px;padding:0;border-radius:50%;font-size:15px}
+.badge.walk{background:#33495f;color:var(--ink-dim);width:30px;padding:0;border-radius:50%;font-size:14px}
+.badge.bus{background:var(--back);font-size:13px}
+.hop .ht{font-size:11px;color:var(--ink-dim);font-weight:700}
+.hop .hn{font-size:9px;color:var(--ink-faint);max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.arrowi{align-self:center;color:var(--ink-faint);font-size:11px;margin-top:7px}
+
+/* detail steps (collapsible) */
+.detail{margin-top:9px;border-top:1px dashed var(--line);padding-top:9px;display:none}
+.detail.open{display:block}
+.dtoggle{font-size:11px;color:var(--accent2);font-weight:700;cursor:pointer;margin-top:8px;display:inline-block}
+.step{display:flex;gap:8px;padding:4px 0 4px 13px;position:relative;font-size:13px;line-height:1.4}
+.step::before{content:'';position:absolute;left:-1px;top:9px;width:9px;height:9px;border-radius:50%;background:var(--line)}
+.step.sub::before{background:var(--accent2)}
+.step.bus::before{background:var(--back)}
+.step .lbl{font-weight:800}
+.step .sub2{color:var(--ink-faint);font-size:11px}
+.seglist{border-left:2px solid var(--line);margin-left:4px}
+
+.state{padding:14px 4px;text-align:center;color:var(--ink-dim);font-size:13px}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.err{color:#ff9f7a;font-size:12px}
+
+/* ===== adder ===== */
+.adder{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.adder-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.adder-h span{font-size:13px;font-weight:800;color:var(--ink-dim)}
+.refresh{background:none;border:1px solid var(--line);color:var(--ink-dim);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer}
+.origin-pick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px}
+.op{border:1px solid var(--line);background:var(--card2);color:var(--ink-dim);border-radius:8px;padding:7px 11px;font-size:13px;font-weight:700;cursor:pointer;transition:.15s}
+.op:active{transform:scale(.96)}
+.op.sel{border-color:var(--accent);background:rgba(255,209,102,.12);color:var(--accent)}
+.add-row{display:flex;gap:7px}
+.add-row input{flex:1;background:var(--card2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:12px 13px;font-size:15px;outline:none}
+.add-row input::placeholder{color:var(--ink-faint)}
+.add-row input:focus{border-color:var(--accent)}
+.add-row button{flex:none;background:var(--accent);color:#0d1b2a;border:0;border-radius:10px;padding:0 16px;font-size:15px;font-weight:800;cursor:pointer}
+.add-row button:active{transform:scale(.97)}
+.searchres{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.sr{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:11px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sr:active{border-color:var(--accent)}
+.sr .srn{font-size:14px;font-weight:700}
+.sr .sra{font-size:11px;color:var(--ink-faint);margin-top:2px}
+.sr .add{color:var(--accent);font-size:22px;font-weight:300;flex:none;line-height:1}
+
+.foot{text-align:center;color:var(--ink-faint);font-size:10px;margin-top:16px;opacity:.7}
+.keybox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
+.keybox p{margin:0;font-size:13px;color:var(--ink-dim);line-height:1.5}
+.keybox a{color:var(--accent2)}
+.keybox code{background:var(--bg2);padding:2px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg class="pin" viewBox="0 0 24 24" fill="none"><path d="M5 18l4-11" stroke="#ffd166" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="0.1 3.4"/><circle cx="5" cy="18.5" r="2.3" fill="#5fd0c4"/><path d="M16 3.5a4.5 4.5 0 014.5 4.5c0 3.4-4.5 7.5-4.5 7.5S11.5 11.4 11.5 8A4.5 4.5 0 0116 3.5z" fill="#ff6b6b"/><circle cx="16" cy="8" r="1.7" fill="#fff"/></svg>
+      <h1>My Route</h1>
+    </div>
+    <div class="now" id="nowLabel"></div>
+  </header>
+
+  <div id="keyArea"></div>
+  <div class="dests" id="dests"></div>
+
+  <div class="adder">
+    <div class="adder-h">
+      <span>목적지 추가 / 경로 조회</span>
+      <button class="refresh" id="refreshAll">↻ 새로고침</button>
+    </div>
+    <div class="origin-pick" id="originPick"></div>
+    <div class="add-row">
+      <input id="q" placeholder="식당·건물·장소·주소 검색" autocomplete="off">
+      <button id="searchBtn">검색</button>
+    </div>
+    <div class="searchres" id="searchres"></div>
+  </div>
+
+  <div class="foot">ODsay · Kakao · 조회 시점 기준 실시간</div>
+</div>
+
+<script>
+/* ===== 설정 ===== */
+const ODSAY_KEY = "4Qj7VeyluYFOt8mYtv27MA";
+const PROXY = "https://route-search.ssangku2.workers.dev";
+
+const ORIGIN = { id:"home", name:"집(은빛마을)", short:"집", x:126.8364, y:37.6417 };
+const HWAJEONG = { x:126.8329, y:37.6345 }; // 3호선 화정역 (경유 우선용)
+
+const DEFAULT_DESTS = [
+  { id:"ace",  name:"에이스테크노타워", short:"에이스", addr:"구로구 디지털로31길 20", x:126.8943, y:37.4855, viaHwajeong:true },
+  { id:"misa", name:"미사랑데르 III", short:"미사", addr:"하남시 미사강변남로 103", x:127.1933, y:37.5611 },
+];
+
+/* ===== 상태 ===== */
+let dests = DEFAULT_DESTS.map(d => ({...d, dir:"go", routes:null, loading:false, error:null}));
+let pickOrigin = "home";
+
+/* ===== 유틸 ===== */
+const $ = s => document.querySelector(s);
+const SUBWAY_COLOR = {
+  "1":"#0052A4","2":"#00A84D","3":"#EF7C1C","4":"#00A5DE","5":"#996CAC",
+  "6":"#CD7C2F","7":"#747F00","8":"#E6186C","9":"#BDB092","수인분당":"#FABE00",
+  "신분당":"#D4003B","경의중앙":"#77C4A3","공항":"#0090D2","경춘":"#0C8E72",
+  "우이신설":"#B7C452","서해":"#8FC31F","김포골드":"#A17800","GTX":"#9A6292","신림":"#6789CA"
+};
+function fmtMin(m){ if(m>=60){const h=Math.floor(m/60);return h+"시간 "+(m%60)+"분";} return m+"분"; }
+function subColor(name){
+  if(!name) return "#5fd0c4";
+  for(const k in SUBWAY_COLOR){ if(name.includes(k)) return SUBWAY_COLOR[k]; }
+  return "#5fd0c4";
+}
+function laneName(seg){
+  if(seg.lane && seg.lane[0]) return seg.lane[0].name || seg.lane[0].busNo || "";
+  return "";
+}
+// 노선 번호만 추출 (예: "수도권 3호선" → "3", "서해선" → "서해")
+function lineLabel(nm){
+  if(!nm) return "";
+  const m = nm.match(/(\d+)호선/);
+  if(m) return m[1];
+  return nm.replace("수도권","").replace("선","").replace(/\s/g,"").slice(0,3);
+}
+function hasHwajeong(path){
+  return path.subPath.some(s=>
+    (s.startName&&s.startName.includes("화정")) || (s.endName&&s.endName.includes("화정")) ||
+    (s.passStopList&&s.passStopList.stations&&s.passStopList.stations.some(x=>x.stationName&&x.stationName.includes("화정")))
+  );
+}
+
+/* ===== 렌더 ===== */
+function renderNow(){
+  const d = new Date(); const days=["일","월","화","수","목","금","토"];
+  $("#nowLabel").textContent = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")} 기준`;
+}
+
+function renderOriginPick(){
+  const root = $("#originPick");
+  const opts = [{id:"home",label:"집"}, ...dests.map(d=>({id:d.id,label:d.short||d.name}))];
+  root.innerHTML = opts.map(o=>`<button class="op ${pickOrigin===o.id?'sel':''}" data-op="${o.id}">${o.label}</button>`).join("");
+  root.querySelectorAll("[data-op]").forEach(b=>{ b.onclick=()=>{pickOrigin=b.dataset.op;renderOriginPick();}; });
+}
+function resolveOrigin(){
+  if(pickOrigin==="home") return ORIGIN;
+  const d = dests.find(x=>x.id===pickOrigin);
+  return d ? {name:d.name,short:d.short,x:d.x,y:d.y} : ORIGIN;
+}
+
+function renderDests(){
+  const root = $("#dests"); root.innerHTML="";
+  dests.forEach((d,i)=>{
+    const card=document.createElement("div"); card.className="dcard";
+    const go=d.dir==="go";
+    const flow = go ? `${ORIGIN.short} → ${d.short||d.name}` : `${d.short||d.name} → ${ORIGIN.short}`;
+    card.innerHTML=`
+      <div class="dcard-top">
+        <div class="dname">${d.name}${d.custom?`<button class="rm" data-rm="${i}">✕</button>`:""}
+          <span class="route-flow">${go?"출근":"퇴근"} · ${flow}</span></div>
+        <button class="dirbtn ${d.dir}" data-flip="${i}">${go?arrow():arrowBack()} ${go?"출근":"퇴근"}</button>
+      </div>
+      <div class="routes" id="r${i}"></div>`;
+    root.appendChild(card); renderRoutes(i);
+  });
+  root.querySelectorAll("[data-flip]").forEach(b=>{b.onclick=()=>{const i=+b.dataset.flip;dests[i].dir=dests[i].dir==="go"?"back":"go";dests[i].routes=null;renderDests();loadRoute(i);};});
+  root.querySelectorAll("[data-rm]").forEach(b=>{b.onclick=()=>{const i=+b.dataset.rm;const id=dests[i].id;dests.splice(i,1);if(pickOrigin===id)pickOrigin="home";renderDests();renderOriginPick();};});
+}
+function arrow(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';}
+function arrowBack(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>';}
+
+function renderRoutes(i){
+  const el=$("#r"+i); if(!el) return; const d=dests[i];
+  if(d.loading){el.innerHTML=`<div class="state"><span class="spin"></span>경로 조회 중…</div>`;return;}
+  if(d.error){el.innerHTML=`<div class="state err">${d.error}</div>`;return;}
+  if(!d.routes){el.innerHTML="";return;}
+  if(d.routes.length===0){el.innerHTML=`<div class="state">경로 없음</div>`;return;}
+  el.innerHTML=d.routes.map((r,idx)=>routeHTML(r,idx===0,i,idx)).join("");
+  el.querySelectorAll("[data-dt]").forEach(b=>{b.onclick=()=>{const t=el.querySelector(`#dt-${i}-${b.dataset.dt}`);t.classList.toggle("open");b.textContent=t.classList.contains("open")?"간략히 ▲":"상세 경로 ▼";};});
+}
+
+function routeHTML(r,isBest,ci,ri){
+  // flow: 각 구간을 배지 + 시간으로
+  const hops=[];
+  r.subPath.forEach(s=>{
+    if(s.trafficType===3){
+      if(!s.sectionTime) return;
+      hops.push(`<div class="hop"><div class="badge walk">🚶</div><div class="ht">${s.sectionTime}분</div></div>`);
+    } else if(s.trafficType===1){
+      const nm=laneName(s); const c=subColor(nm); const lbl=lineLabel(nm);
+      const numeric=/^\d+$/.test(lbl);
+      hops.push(`<div class="hop"><div class="badge ${numeric?'num':''}" style="background:${c}">${lbl}</div><div class="ht">${s.sectionTime}분</div><div class="hn">${(s.startName||"").replace("역","")}</div></div>`);
+    } else {
+      const nm=laneName(s);
+      hops.push(`<div class="hop"><div class="badge bus">🚌${nm}</div><div class="ht">${s.sectionTime}분</div><div class="hn">${(s.startName||"").slice(0,6)}</div></div>`);
+    }
+  });
+  const flow = hops.join('<div class="arrowi">›</div>');
+
+  const steps=r.subPath.map(s=>{
+    if(s.trafficType===3){ if(!s.sectionTime)return ""; return `<div class="step"><div><span class="lbl">도보</span> ${s.sectionTime}분 <span class="sub2">${s.distance?"· "+s.distance+"m":""}</span></div></div>`; }
+    if(s.trafficType===1){ const nm=laneName(s); return `<div class="step sub"><div><span class="lbl" style="color:${subColor(nm)}">${nm}</span> ${s.sectionTime}분<br><span class="sub2">${s.startName} → ${s.endName} · ${s.stationCount}개역</span></div></div>`; }
+    const nm=laneName(s); return `<div class="step bus"><div><span class="lbl" style="color:var(--back)">${nm}번 버스</span> ${s.sectionTime}분<br><span class="sub2">${s.startName} → ${s.endName} · ${s.stationCount}정류장</span></div></div>`;
+  }).filter(Boolean).join("");
+
+  const tr=Math.max((r.info.busTransitCount||0)+(r.info.subwayTransitCount||0)-1,0);
+  return `<div class="route ${isBest?'best':''}">
+    <div class="route-head">
+      <span class="route-tag">${isBest?"⚡ 최단":"대안"}</span>
+      <div class="route-r"><div class="route-time">${fmtMin(r.info.totalTime)}</div>
+      <div class="route-meta">환승 ${tr} · 도보 ${r.info.totalWalk}m${r.info.payment?" · "+r.info.payment.toLocaleString()+"원":""}</div></div>
+    </div>
+    <div class="flow">${flow}</div>
+    <span class="dtoggle" data-dt="${ri}">상세 경로 ▼</span>
+    <div class="detail" id="dt-${ci}-${ri}"><div class="seglist">${steps}</div></div>
+  </div>`;
+}
+
+/* ===== API: 경로 ===== */
+async function loadRoute(i){
+  const d=dests[i]; d.loading=true; d.error=null; d.routes=null; renderRoutes(i);
+  const go=d.dir==="go";
+  const o = d.custom ? {x:d.originX??ORIGIN.x,y:d.originY??ORIGIN.y} : ORIGIN;
+  const sx=go?o.x:d.x, sy=go?o.y:d.y, ex=go?d.x:o.x, ey=go?d.y:o.y;
+  await fetchRoute(d,sx,sy,ex,ey,d.viaHwajeong&&go);
+  renderRoutes(i);
+}
+async function fetchRoute(target,sx,sy,ex,ey,preferHwajeong){
+  try{
+    const url="https://api.odsay.com/v1/api/searchPubTransPathT"
+      +`?SX=${sx}&SY=${sy}&EX=${ex}&EY=${ey}&SearchType=0&SearchPathType=0&OPT=0`
+      +`&apiKey=${encodeURIComponent(ODSAY_KEY)}`;
+    const res=await fetch(url); if(!res.ok) throw new Error("HTTP "+res.status);
+    const data=await res.json();
+    if(data.error||(data.result&&data.result.error)) throw new Error((data.result&&data.result.msg)||(data.error&&data.error.msg)||"API 오류");
+    let paths=(data.result&&data.result.path)||[];
+    paths.sort((a,b)=>{
+      // 화정 경유 우선(요청 시)
+      if(preferHwajeong){
+        const ah=hasHwajeong(a)?0:1, bh=hasHwajeong(b)?0:1;
+        if(ah!==bh) return ah-bh;
+      }
+      const as=a.subPath.some(s=>s.trafficType===1)?0:1;
+      const bs=b.subPath.some(s=>s.trafficType===1)?0:1;
+      if(as!==bs) return as-bs;
+      return a.info.totalTime-b.info.totalTime;
+    });
+    target.routes=paths.slice(0,2); target.loading=false;
+  }catch(e){ target.error="조회 실패: "+e.message; target.loading=false; }
+}
+function loadAll(){ dests.forEach((_,i)=>loadRoute(i)); }
+
+/* ===== 검색 (에러 표시 강화) ===== */
+async function searchPlace(q){
+  const box=$("#searchres");
+  box.innerHTML=`<div class="state"><span class="spin"></span>검색 중…</div>`;
+  try{
+    const res=await fetch(`${PROXY}/search?q=${encodeURIComponent(q)}`);
+    const raw=await res.text();
+    let data; try{ data=JSON.parse(raw); }catch{ throw new Error("응답 파싱 실패: "+raw.slice(0,80)); }
+    if(!res.ok) throw new Error("HTTP "+res.status+" "+(data.error||raw.slice(0,80)));
+    if(data.error) throw new Error(data.error);
+    // Kakao 에러 메시지 형태 처리
+    if(data.errorType||data.code){ throw new Error("Kakao: "+(data.msg||data.message||data.errorType)); }
+    const list=data.documents||[];
+    if(!list.length){ box.innerHTML=`<div class="state">검색 결과가 없어요 (다른 키워드로)</div>`; return; }
+    box.innerHTML=list.slice(0,7).map((p,idx)=>`
+      <div class="sr" data-idx="${idx}"><div style="flex:1;min-width:0">
+        <div class="srn">${p.place_name}</div>
+        <div class="sra">${p.road_address_name||p.address_name||""}${p.category_group_name?" · "+p.category_group_name:""}</div>
+      </div><span class="add">＋</span></div>`).join("");
+    box.querySelectorAll(".sr").forEach(el=>{ el.onclick=()=>{ addDestFromSearch(list[+el.dataset.idx]); box.innerHTML=""; $("#q").value=""; }; });
+  }catch(e){
+    box.innerHTML=`<div class="state err">검색 실패: ${e.message}<br><span style="color:var(--ink-faint);font-size:11px">Kakao REST 키·로컬 API 활성화 확인</span></div>`;
+  }
+}
+function addDestFromSearch(p){
+  const o=resolveOrigin();
+  dests.push({ id:"c"+Date.now(), name:p.place_name, short:p.place_name.length>8?p.place_name.slice(0,8)+"…":p.place_name,
+    addr:p.road_address_name||p.address_name||"", x:parseFloat(p.x), y:parseFloat(p.y),
+    dir:"go", routes:null, loading:false, error:null, custom:true, originX:o.x, originY:o.y });
+  renderDests(); renderOriginPick(); loadRoute(dests.length-1);
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ===== 설정 안내 ===== */
+function checkSetup(){
+  if(ODSAY_KEY.includes("YOUR_ODSAY")){
+    $("#keyArea").innerHTML=`<div class="keybox"><p><b>⚙️ 설정 필요</b><br>ODsay URI 키를 <code>ODSAY_KEY</code>에 넣어주세요. <a href="https://lab.odsay.com" target="_blank">lab.odsay.com</a></p></div>`;
+    return false;
+  } return true;
+}
+
+/* ===== init ===== */
+renderNow(); renderOriginPick(); renderDests();
+if(checkSetup()) loadAll();
+$("#searchBtn").onclick=()=>{const q=$("#q").value.trim();if(q)searchPlace(q);};
+$("#q").addEventListener("keydown",e=>{if(e.key==="Enter"){const q=$("#q").value.trim();if(q)searchPlace(q);}});
+$("#refreshAll").onclick=()=>{renderNow();if(checkSetup())loadAll();};
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)renderNow();});
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}
+</script>
+</body>
+</html>
